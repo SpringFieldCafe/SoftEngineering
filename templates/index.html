@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书管理系统</title>
+    <!-- 引入Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入自定义CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">图书管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="nav-home">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-books">图书管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-borrows">借阅管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 首页内容 -->
+        <div id="home-content" class="content-section">
+            <div class="jumbotron bg-light p-4 rounded">
+                <h1 class="display-4">欢迎使用图书管理系统</h1>
+                <p class="lead">本系统提供图书管理和借阅管理功能，方便您对图书进行全方位管理。</p>
+                <hr class="my-4">
+                <p>请通过上方导航菜单选择相应功能。</p>
+                <div class="mt-4">
+                    <h3>系统功能</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>图书管理</strong>
+                            <p class="mb-0">新增、查询、修改、删除图书</p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>借阅管理</strong>
+                            <p class="mb-0">借阅图书、归还图书、查看借阅记录</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图书管理内容 -->
+        <div id="books-content" class="content-section d-none">
+            <h2 class="mb-4">图书管理</h2>
+            
+            <!-- 图书搜索 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    图书搜索
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <select class="form-select" id="search-type">
+                                <option value="title">按书名</option>
+                                <option value="author">按作者</option>
+                                <option value="isbn">按ISBN</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="search-keyword" placeholder="请输入搜索关键词">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" id="search-btn">搜索</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图书列表 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>图书列表</span>
+                    <button class="btn btn-success" id="add-book-btn" data-bs-toggle="modal" data-bs-target="#add-book-modal">新增图书</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ISBN</th>
+                                    <th>书名</th>
+                                    <th>作者</th>
+                                    <th>出版社</th>
+                                    <th>出版日期</th>
+                                    <th>库存</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-table-body">
+                                <!-- 图书列表将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 借阅管理内容 -->
+        <div id="borrows-content" class="content-section d-none">
+            <h2 class="mb-4">借阅管理</h2>
+            
+            <!-- 借阅操作 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            借阅图书
+                        </div>
+                        <div class="card-body">
+                            <form id="borrow-form">
+                                <div class="mb-3">
+                                    <label for="borrow-isbn" class="form-label">图书ISBN</label>
+                                    <input type="text" class="form-control" id="borrow-isbn" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="borrower" class="form-label">借阅人姓名</label>
+                                    <input type="text" class="form-control" id="borrower" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">借阅</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            归还图书
+                        </div>
+                        <div class="card-body">
+                            <form id="return-form">
+                                <div class="mb-3">
+                                    <label for="return-isbn" class="form-label">图书ISBN</label>
+                                    <input type="text" class="form-control" id="return-isbn" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="return-borrower" class="form-label">借阅人姓名</label>
+                                    <input type="text" class="form-control" id="return-borrower" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">归还</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 借阅记录查询 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>借阅记录</span>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control" id="record-borrower" placeholder="借阅人姓名">
+                        <button class="btn btn-primary" id="view-records-btn">查看记录</button>
+                        <button class="btn btn-warning" id="view-unreturned-btn">未归还记录</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>编号</th>
+                                    <th>ISBN</th>
+                                    <th>书名</th>
+                                    <th>借阅人</th>
+                                    <th>借阅时间</th>
+                                    <th>归还时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="borrows-table-body">
+                                <!-- 借阅记录将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增图书模态框 -->
+    <div class="modal fade" id="add-book-modal" tabindex="-1" aria-labelledby="add-book-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="add-book-modal-label">新增图书</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-book-form">
+                        <div class="mb-3">
+                            <label for="book-isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="book-isbn" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-title" class="form-label">书名</label>
+                            <input type="text" class="form-control" id="book-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-author" class="form-label">作者</label>
+                            <input type="text" class="form-control" id="book-author" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-publisher" class="form-label">出版社</label>
+                            <input type="text" class="form-control" id="book-publisher" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-date" class="form-label">出版日期</label>
+                            <input type="date" class="form-control" id="book-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-stock" class="form-label">库存数量</label>
+                            <input type="number" class="form-control" id="book-stock" min="0" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-book-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改图书模态框 -->
+    <div class="modal fade" id="edit-book-modal" tabindex="-1" aria-labelledby="edit-book-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="edit-book-modal-label">修改图书</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-book-form">
+                        <div class="mb-3">
+                            <label for="edit-book-isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="edit-book-isbn" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-title" class="form-label">书名</label>
+                            <input type="text" class="form-control" id="edit-book-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-author" class="form-label">作者</label>
+                            <input type="text" class="form-control" id="edit-book-author" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-publisher" class="form-label">出版社</label>
+                            <input type="text" class="form-control" id="edit-book-publisher" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-date" class="form-label">出版日期</label>
+                            <input type="date" class="form-control" id="edit-book-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-stock" class="form-label">库存数量</label>
+                            <input type="number" class="form-control" id="edit-book-stock" min="0" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="update-book-btn">更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="message-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">系统消息</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-message">
+                消息内容
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入自定义JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
