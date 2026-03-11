@@ -1,0 +1,115 @@
+/* 自定义样式 */
+
+/* 页面基本样式 */
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* 内容区域 */
+.content-section {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 卡片样式 */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 表格样式 */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table th {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 4px;
+}
+
+/* 表单样式 */
+.form-control {
+    border-radius: 4px;
+}
+
+/* 模态框样式 */
+.modal-content {
+    border-radius: 8px;
+}
+
+/* 导航栏样式 */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .row {
+        margin-bottom: 20px;
+    }
+    
+    .col-md-6 {
+        margin-bottom: 20px;
+    }
+}
+
+/* 消息提示样式 */
+.toast {
+    min-width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 加载动画 */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0, 123, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #0d6efd;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 操作按钮组 */
+.btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+/* 搜索区域 */
+#search-type {
+    border-radius: 4px 0 0 4px;
+}
+
+#search-keyword {
+    border-radius: 0;
+}
+
+#search-btn {
+    border-radius: 0 4px 4px 0;
+}
