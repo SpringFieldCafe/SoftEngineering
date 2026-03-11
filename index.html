@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书管理系统</title>
+    <!-- 引入Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入自定义CSS -->
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .content-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table th {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .btn {
+            border-radius: 4px;
+        }
+        
+        .form-control {
+            border-radius: 4px;
+        }
+        
+        .modal-content {
+            border-radius: 8px;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            
+            .row {
+                margin-bottom: 20px;
+            }
+            
+            .col-md-6 {
+                margin-bottom: 20px;
+            }
+        }
+        
+        .toast {
+            min-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 123, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #0d6efd;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">图书管理系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="nav-home">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-books">图书管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-borrows">借阅管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 首页内容 -->
+        <div id="home-content" class="content-section">
+            <div class="jumbotron bg-light p-4 rounded">
+                <h1 class="display-4">欢迎使用图书管理系统</h1>
+                <p class="lead">本系统提供图书管理和借阅管理功能，方便您对图书进行全方位管理。</p>
+                <hr class="my-4">
+                <p>请通过上方导航菜单选择相应功能。</p>
+                <div class="mt-4">
+                    <h3>系统功能</h3>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <strong>图书管理</strong>
+                            <p class="mb-0">新增、查询、修改、删除图书</p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>借阅管理</strong>
+                            <p class="mb-0">借阅图书、归还图书、查看借阅记录</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 图书管理内容 -->
+        <div id="books-content" class="content-section d-none">
+            <h2 class="mb-4">图书管理</h2>
+            
+            <!-- 图书搜索 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    图书搜索
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <select class="form-select" id="search-type">
+                                <option value="title">按书名</option>
+                                <option value="author">按作者</option>
+                                <option value="isbn">按ISBN</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="search-keyword" placeholder="请输入搜索关键词">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" id="search-btn">搜索</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图书列表 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>图书列表</span>
+                    <button class="btn btn-success" id="add-book-btn" data-bs-toggle="modal" data-bs-target="#add-book-modal">新增图书</button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ISBN</th>
+                                    <th>书名</th>
+                                    <th>作者</th>
+                                    <th>出版社</th>
+                                    <th>出版日期</th>
+                                    <th>库存</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-table-body">
+                                <!-- 图书列表将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 借阅管理内容 -->
+        <div id="borrows-content" class="content-section d-none">
+            <h2 class="mb-4">借阅管理</h2>
+            
+            <!-- 借阅操作 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            借阅图书
+                        </div>
+                        <div class="card-body">
+                            <form id="borrow-form">
+                                <div class="mb-3">
+                                    <label for="borrow-isbn" class="form-label">图书ISBN</label>
+                                    <input type="text" class="form-control" id="borrow-isbn" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="borrower" class="form-label">借阅人姓名</label>
+                                    <input type="text" class="form-control" id="borrower" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">借阅</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            归还图书
+                        </div>
+                        <div class="card-body">
+                            <form id="return-form">
+                                <div class="mb-3">
+                                    <label for="return-isbn" class="form-label">图书ISBN</label>
+                                    <input type="text" class="form-control" id="return-isbn" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="return-borrower" class="form-label">借阅人姓名</label>
+                                    <input type="text" class="form-control" id="return-borrower" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">归还</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 借阅记录查询 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>借阅记录</span>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control" id="record-borrower" placeholder="借阅人姓名">
+                        <button class="btn btn-primary" id="view-records-btn">查看记录</button>
+                        <button class="btn btn-warning" id="view-unreturned-btn">未归还记录</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>编号</th>
+                                    <th>ISBN</th>
+                                    <th>书名</th>
+                                    <th>借阅人</th>
+                                    <th>借阅时间</th>
+                                    <th>归还时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="borrows-table-body">
+                                <!-- 借阅记录将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增图书模态框 -->
+    <div class="modal fade" id="add-book-modal" tabindex="-1" aria-labelledby="add-book-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="add-book-modal-label">新增图书</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-book-form">
+                        <div class="mb-3">
+                            <label for="book-isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="book-isbn" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-title" class="form-label">书名</label>
+                            <input type="text" class="form-control" id="book-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-author" class="form-label">作者</label>
+                            <input type="text" class="form-control" id="book-author" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-publisher" class="form-label">出版社</label>
+                            <input type="text" class="form-control" id="book-publisher" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-date" class="form-label">出版日期</label>
+                            <input type="date" class="form-control" id="book-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="book-stock" class="form-label">库存数量</label>
+                            <input type="number" class="form-control" id="book-stock" min="0" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-book-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改图书模态框 -->
+    <div class="modal fade" id="edit-book-modal" tabindex="-1" aria-labelledby="edit-book-modal-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="edit-book-modal-label">修改图书</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-book-form">
+                        <div class="mb-3">
+                            <label for="edit-book-isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="edit-book-isbn" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-title" class="form-label">书名</label>
+                            <input type="text" class="form-control" id="edit-book-title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-author" class="form-label">作者</label>
+                            <input type="text" class="form-control" id="edit-book-author" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-publisher" class="form-label">出版社</label>
+                            <input type="text" class="form-control" id="edit-book-publisher" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-date" class="form-label">出版日期</label>
+                            <input type="date" class="form-control" id="edit-book-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-book-stock" class="form-label">库存数量</label>
+                            <input type="number" class="form-control" id="edit-book-stock" min="0" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="update-book-btn">更新</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="message-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">系统消息</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-message">
+                消息内容
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 引入自定义JS -->
+    <script>
+        // 数据存储
+        const STORAGE_KEYS = {
+            BOOKS: 'library_books',
+            BORROWS: 'library_borrows'
+        };
+
+        // 初始化数据
+        function initData() {
+            if (!localStorage.getItem(STORAGE_KEYS.BOOKS)) {
+                localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify([]));
+            }
+            if (!localStorage.getItem(STORAGE_KEYS.BORROWS)) {
+                localStorage.setItem(STORAGE_KEYS.BORROWS, JSON.stringify([]));
+            }
+        }
+
+        // 获取图书数据
+        function getBooks() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEYS.BOOKS) || '[]');
+        }
+
+        // 保存图书数据
+        function saveBooks(books) {
+            localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify(books));
+        }
+
+        // 获取借阅记录
+        function getBorrows() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEYS.BORROWS) || '[]');
+        }
+
+        // 保存借阅记录
+        function saveBorrows(borrows) {
+            localStorage.setItem(STORAGE_KEYS.BORROWS, JSON.stringify(borrows));
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化数据
+            initData();
+            
+            // 导航切换
+            setupNavigation();
+            
+            // 图书管理相关事件
+            setupBookEvents();
+            
+            // 借阅管理相关事件
+            setupBorrowEvents();
+            
+            // 加载图书列表
+            loadBooks();
+        });
+
+        // 设置导航切换
+        function setupNavigation() {
+            // 首页导航
+            document.getElementById('nav-home').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('home-content');
+                setActiveNav('nav-home');
+            });
+            
+            // 图书管理导航
+            document.getElementById('nav-books').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('books-content');
+                setActiveNav('nav-books');
+                loadBooks();
+            });
+            
+            // 借阅管理导航
+            document.getElementById('nav-borrows').addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('borrows-content');
+                setActiveNav('nav-borrows');
+                loadBorrows();
+            });
+        }
+
+        // 显示指定内容区域
+        function showSection(sectionId) {
+            // 隐藏所有内容区域
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.add('d-none');
+            });
+            
+            // 显示选中的内容区域
+            document.getElementById(sectionId).classList.remove('d-none');
+        }
+
+        // 设置导航项为活动状态
+        function setActiveNav(navId) {
+            // 移除所有导航项的活动状态
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // 设置选中的导航项为活动状态
+            document.getElementById(navId).classList.add('active');
+        }
+
+        // 设置图书管理相关事件
+        function setupBookEvents() {
+            // 搜索按钮点击事件
+            document.getElementById('search-btn').addEventListener('click', function() {
+                searchBooks();
+            });
+            
+            // 新增图书按钮点击事件
+            document.getElementById('save-book-btn').addEventListener('click', function() {
+                addBook();
+            });
+            
+            // 更新图书按钮点击事件
+            document.getElementById('update-book-btn').addEventListener('click', function() {
+                updateBook();
+            });
+        }
+
+        // 设置借阅管理相关事件
+        function setupBorrowEvents() {
+            // 借阅表单提交事件
+            document.getElementById('borrow-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                borrowBook();
+            });
+            
+            // 归还表单提交事件
+            document.getElementById('return-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                returnBook();
+            });
+            
+            // 查看记录按钮点击事件
+            document.getElementById('view-records-btn').addEventListener('click', function() {
+                loadBorrows();
+            });
+            
+            // 查看未归还记录按钮点击事件
+            document.getElementById('view-unreturned-btn').addEventListener('click', function() {
+                loadUnreturnedBorrows();
+            });
+        }
+
+        // 加载图书列表
+        function loadBooks() {
+            const books = getBooks();
+            renderBooksTable(books);
+        }
+
+        // 搜索图书
+        function searchBooks() {
+            const searchType = document.getElementById('search-type').value;
+            const keyword = document.getElementById('search-keyword').value;
+            const books = getBooks();
+            
+            let results = [];
+            if (searchType === 'title') {
+                results = books.filter(book => book.title.includes(keyword));
+            } else if (searchType === 'author') {
+                results = books.filter(book => book.author.includes(keyword));
+            } else if (searchType === 'isbn') {
+                results = books.filter(book => book.isbn === keyword);
+            }
+            
+            renderBooksTable(results);
+        }
+
+        // 渲染图书表格
+        function renderBooksTable(books) {
+            const tableBody = document.getElementById('books-table-body');
+            tableBody.innerHTML = '';
+            
+            if (books.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" class="text-center">暂无图书数据</td></tr>';
+                return;
+            }
+            
+            books.forEach(book => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${book.isbn}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.publisher}</td>
+                    <td>${book.publish_date}</td>
+                    <td>${book.stock}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-primary edit-book" data-isbn="${book.isbn}">修改</button>
+                            <button class="btn btn-sm btn-danger delete-book" data-isbn="${book.isbn}">删除</button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // 添加修改和删除事件
+            document.querySelectorAll('.edit-book').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    editBook(this.dataset.isbn);
+                });
+            });
+            
+            document.querySelectorAll('.delete-book').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deleteBook(this.dataset.isbn);
+                });
+            });
+        }
+
+        // 新增图书
+        function addBook() {
+            const bookData = {
+                isbn: document.getElementById('book-isbn').value,
+                title: document.getElementById('book-title').value,
+                author: document.getElementById('book-author').value,
+                publisher: document.getElementById('book-publisher').value,
+                publish_date: document.getElementById('book-date').value,
+                stock: parseInt(document.getElementById('book-stock').value)
+            };
+            
+            const books = getBooks();
+            
+            // 检查ISBN是否已存在
+            for (const book of books) {
+                if (book.isbn === bookData.isbn) {
+                    showMessage('该ISBN的图书已存在！', 'danger');
+                    return;
+                }
+            }
+            
+            // 添加到图书列表
+            books.push(bookData);
+            saveBooks(books);
+            
+            showMessage('图书添加成功！', 'success');
+            
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('add-book-modal'));
+            modal.hide();
+            
+            // 清空表单
+            document.getElementById('add-book-form').reset();
+            
+            // 重新加载图书列表
+            loadBooks();
+        }
+
+        // 编辑图书
+        function editBook(isbn) {
+            const books = getBooks();
+            const book = books.find(b => b.isbn === isbn);
+            
+            if (!book) {
+                showMessage('未找到图书信息', 'danger');
+                return;
+            }
+            
+            // 填充表单
+            document.getElementById('edit-book-isbn').value = book.isbn;
+            document.getElementById('edit-book-title').value = book.title;
+            document.getElementById('edit-book-author').value = book.author;
+            document.getElementById('edit-book-publisher').value = book.publisher;
+            document.getElementById('edit-book-date').value = book.publish_date;
+            document.getElementById('edit-book-stock').value = book.stock;
+            
+            // 显示模态框
+            const modal = new bootstrap.Modal(document.getElementById('edit-book-modal'));
+            modal.show();
+        }
+
+        // 更新图书
+        function updateBook() {
+            const isbn = document.getElementById('edit-book-isbn').value;
+            const bookData = {
+                title: document.getElementById('edit-book-title').value,
+                author: document.getElementById('edit-book-author').value,
+                publisher: document.getElementById('edit-book-publisher').value,
+                publish_date: document.getElementById('edit-book-date').value,
+                stock: parseInt(document.getElementById('edit-book-stock').value)
+            };
+            
+            const books = getBooks();
+            const bookIndex = books.findIndex(b => b.isbn === isbn);
+            
+            if (bookIndex === -1) {
+                showMessage('未找到该ISBN的图书！', 'danger');
+                return;
+            }
+            
+            // 更新图书信息
+            books[bookIndex] = {
+                ...books[bookIndex],
+                ...bookData
+            };
+            
+            saveBooks(books);
+            showMessage('图书信息修改成功！', 'success');
+            
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('edit-book-modal'));
+            modal.hide();
+            
+            // 重新加载图书列表
+            loadBooks();
+        }
+
+        // 删除图书
+        function deleteBook(isbn) {
+            if (confirm('确定要删除该图书吗？')) {
+                const books = getBooks();
+                const borrows = getBorrows();
+                
+                // 检查是否有未归还的借阅记录
+                const hasUnreturned = borrows.some(borrow => borrow.isbn === isbn && borrow.return_date === null);
+                
+                if (hasUnreturned) {
+                    showMessage('该图书有未归还的借阅记录，无法删除！', 'danger');
+                    return;
+                }
+                
+                // 删除图书
+                const updatedBooks = books.filter(book => book.isbn !== isbn);
+                saveBooks(updatedBooks);
+                
+                showMessage('图书删除成功！', 'success');
+                
+                // 重新加载图书列表
+                loadBooks();
+            }
+        }
+
+        // 加载借阅记录
+        function loadBorrows() {
+            const borrower = document.getElementById('record-borrower').value;
+            const borrows = getBorrows();
+            const books = getBooks();
+            
+            let records = borrows;
+            if (borrower) {
+                records = records.filter(b => b.borrower === borrower);
+            }
+            
+            // 为每条记录添加图书标题
+            records = records.map(record => {
+                const book = books.find(b => b.isbn === record.isbn);
+                return {
+                    ...record,
+                    book_title: book ? book.title : '未知'
+                };
+            });
+            
+            renderBorrowsTable(records);
+        }
+
+        // 加载未归还记录
+        function loadUnreturnedBorrows() {
+            const borrows = getBorrows();
+            const books = getBooks();
+            
+            const records = borrows
+                .filter(b => b.return_date === null)
+                .map(record => {
+                    const book = books.find(b => b.isbn === record.isbn);
+                    return {
+                        ...record,
+                        book_title: book ? book.title : '未知'
+                    };
+                });
+            
+            renderBorrowsTable(records);
+        }
+
+        // 渲染借阅记录表格
+        function renderBorrowsTable(borrows) {
+            const tableBody = document.getElementById('borrows-table-body');
+            tableBody.innerHTML = '';
+            
+            if (borrows.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">暂无借阅记录</td></tr>';
+                return;
+            }
+            
+            borrows.forEach(record => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${record.id}</td>
+                    <td>${record.isbn}</td>
+                    <td>${record.book_title || '未知'}</td>
+                    <td>${record.borrower}</td>
+                    <td>${record.borrow_date}</td>
+                    <td>${record.return_date || '<span class="text-danger">未归还</span>'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 借阅图书
+        function borrowBook() {
+            const borrowData = {
+                isbn: document.getElementById('borrow-isbn').value,
+                borrower: document.getElementById('borrower').value
+            };
+            
+            const books = getBooks();
+            const borrows = getBorrows();
+            
+            // 查找图书
+            const book = books.find(b => b.isbn === borrowData.isbn);
+            if (!book) {
+                showMessage('未找到该ISBN的图书！', 'danger');
+                return;
+            }
+            
+            // 检查库存
+            if (book.stock <= 0) {
+                showMessage('该图书库存不足，无法借阅！', 'danger');
+                return;
+            }
+            
+            // 检查是否已借阅未归还
+            const hasBorrowed = borrows.some(b => b.isbn === borrowData.isbn && b.borrower === borrowData.borrower && b.return_date === null);
+            if (hasBorrowed) {
+                showMessage('该图书已被该借阅人借阅且未归还！', 'danger');
+                return;
+            }
+            
+            // 生成借阅记录
+            const borrowRecord = {
+                id: borrows.length + 1,
+                isbn: borrowData.isbn,
+                borrower: borrowData.borrower,
+                borrow_date: new Date().toLocaleString('zh-CN'),
+                return_date: null
+            };
+            
+            // 添加借阅记录
+            borrows.push(borrowRecord);
+            saveBorrows(borrows);
+            
+            // 扣减库存
+            book.stock -= 1;
+            saveBooks(books);
+            
+            showMessage('图书借阅成功！', 'success');
+            
+            // 清空表单
+            document.getElementById('borrow-form').reset();
+            
+            // 重新加载借阅记录和图书列表
+            loadBorrows();
+            loadBooks();
+        }
+
+        // 归还图书
+        function returnBook() {
+            const returnData = {
+                isbn: document.getElementById('return-isbn').value,
+                borrower: document.getElementById('return-borrower').value
+            };
+            
+            const borrows = getBorrows();
+            const books = getBooks();
+            
+            // 查找借阅记录
+            const borrowIndex = borrows.findIndex(b => b.isbn === returnData.isbn && b.borrower === returnData.borrower && b.return_date === null);
+            if (borrowIndex === -1) {
+                showMessage('未找到该借阅记录！', 'danger');
+                return;
+            }
+            
+            // 查找图书
+            const book = books.find(b => b.isbn === returnData.isbn);
+            if (!book) {
+                showMessage('未找到该图书！', 'danger');
+                return;
+            }
+            
+            // 更新借阅记录
+            borrows[borrowIndex].return_date = new Date().toLocaleString('zh-CN');
+            saveBorrows(borrows);
+            
+            // 恢复库存
+            book.stock += 1;
+            saveBooks(books);
+            
+            showMessage('图书归还成功！', 'success');
+            
+            // 清空表单
+            document.getElementById('return-form').reset();
+            
+            // 重新加载借阅记录和图书列表
+            loadBorrows();
+            loadBooks();
+        }
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            const toast = document.getElementById('message-toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            // 设置消息内容
+            toastMessage.textContent = message;
+            
+            // 设置消息类型样式
+            toast.className = 'toast';
+            if (type === 'success') {
+                toast.classList.add('bg-success', 'text-white');
+            } else if (type === 'danger') {
+                toast.classList.add('bg-danger', 'text-white');
+            } else if (type === 'warning') {
+                toast.classList.add('bg-warning', 'text-dark');
+            } else {
+                toast.classList.add('bg-info', 'text-white');
+            }
+            
+            // 显示消息
+            const toastInstance = new bootstrap.Toast(toast);
+            toastInstance.show();
+        }
+    </script>
+</body>
+</html>
